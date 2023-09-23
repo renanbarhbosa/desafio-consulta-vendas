@@ -4,12 +4,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
-import com.devsuperior.dsmeta.dtos.SellerMinDTO;
+import com.devsuperior.dsmeta.dtos.SaleSummaryDTO;
 import com.devsuperior.dsmeta.entities.Seller;
-import com.devsuperior.dsmeta.projections.SellerMinProjection;
-import com.devsuperior.dsmeta.repositories.SellerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,9 +25,6 @@ public class SaleService {
     @Autowired
     private SaleRepository saleRepository;
 
-    @Autowired
-    private SellerRepository sellerRepository;
-
     final LocalDate today = LocalDate.ofInstant(Instant.now(), ZoneId.systemDefault());
 
     public SaleMinDTO findById(Long id) {
@@ -36,8 +33,8 @@ public class SaleService {
         return new SaleMinDTO(entity);
     }
 
-    public Page<SellerMinDTO> searchPagedSellerWithInitialDateFinalDate
-            (String minDateStr, String maxDateStr, Pageable pageable) {
+    public List<SaleSummaryDTO> searchPagedSellerWithInitialDateFinalDate
+            (String minDateStr, String maxDateStr) {
 
         LocalDate minDate;
         LocalDate maxDate;
@@ -58,11 +55,9 @@ public class SaleService {
             throw new IllegalArgumentException("Formato de data inválido");
         }
 
-        Page<SellerMinProjection> saleMinProjectionPage = sellerRepository
-                .searchSellerByInitialDateFinalDate(minDate, maxDate, pageable);
-        Page<SellerMinDTO> res = saleMinProjectionPage.map(x -> new SellerMinDTO(x));
-        return res;
-
+        List<SaleSummaryDTO> saleMinProjectionPage = saleRepository
+                .searchSalesBySeller(minDate, maxDate);
+        return saleMinProjectionPage;
     }
 
     public Page<SaleMinDTO> searchPagedSalesWithInitialDateFinalDateAndSellerPartialName
